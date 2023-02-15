@@ -1,7 +1,7 @@
 import http from "http";
 import express from "express";
 import path from "path";
-import WebSocket, {WebSocketServer} from "ws";
+import webSocket, {WebSocketServer} from "ws";
 
 const __dirname = path.resolve();
 const app = express();
@@ -12,13 +12,20 @@ app.use("/public", express.static(__dirname + "/src/public"));
 console.log(__dirname);
 app.get("/", (req, res) => res.render("home"));
 const handleListen = () => console.log("Listening on http://localhost:3000");
-// app.listen(3500, handleListen);
+// app.listen(3000, handleListen);
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({server});
+//
+wss.on("connection", (socket) => {
+    console.log("Connected to Browser!");
+    socket.on("close", () => console.log("Disconnected from the Browser"));
+    // 특정 소켓에서 메시지 받기
+    socket.on("message", (message) => {
+       console.log(message);
+    });
+    // 메시지를 브라우저로 전달
+    socket.send("hello");
+});
 
-function handleConnection(socket) {
-    console.log(socket);
-}
-
-wss.on("connection", handleConnection);
-app.listen(3000, handleListen);
+server.listen(3000, handleListen);
