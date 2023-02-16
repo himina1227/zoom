@@ -16,13 +16,16 @@ const handleListen = () => console.log("Listening on http://localhost:3000");
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({server});
-//
+
+const sockets = [];
+
 wss.on("connection", (socket) => {
+    sockets.push(socket);
     console.log("Connected to Browser!");
     socket.on("close", () => console.log("Disconnected from the Browser"));
     // 특정 소켓에서 메시지 받기
     socket.on("message", (message) => {
-       console.log(message);
+        sockets.forEach(aSocket => aSocket.send(message));
     });
     // 메시지를 브라우저로 전달
     socket.send("hello");
