@@ -21,11 +21,25 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
     sockets.push(socket);
+    socket["nickname"] = "Anon";
     console.log("Connected to Browser!");
     socket.on("close", () => console.log("Disconnected from the Browser"));
     // 특정 소켓에서 메시지 받기
-    socket.on("message", (message) => {
-        sockets.forEach(aSocket => aSocket.send(message));
+    socket.on("message", (msg) => {
+        const message = JSON.parse(msg);
+        switch (message.type) {
+            case "new_message":
+                sockets.forEach(aSocket => aSocket.send(`${socket.nickname}: ${message.payload}`));
+            case "nickname":
+                socket["nickname"] = message.payload;
+                // console.log(parsed.payload);
+        }
+
+        // if (parsed.type === "new_message") {
+        //     sockets.forEach(aSocket => aSocket.send(parsed.payload));
+        // } else if (parsed.type === "nickname") {
+        //     console.log(parsed.payload);
+        // }
     });
     // 메시지를 브라우저로 전달
     socket.send("hello");
