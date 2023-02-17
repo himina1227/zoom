@@ -25,11 +25,12 @@ wsServer.on("connection", (socket) => {
     })
     // socket.on("enter_room", (msg) => console.log(msg));
     socket.on("enter_room", (roomName, done) => {
-        console.log(socket.id);
+        // console.log(socket.id);
         console.log(socket.rooms);
         socket.join(roomName);
         console.log(socket.rooms);
         done();
+        socket.to(roomName).emit("welcome");
         // setTimeout(() => {
         //     console.log("hello from the backend");
         //     done();
