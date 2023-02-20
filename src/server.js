@@ -32,7 +32,7 @@ function publicRooms() {
     const {sockets: {adapter: {sids, rooms}}} = wsServer;
 
     const publicRooms = [];
-    rooms.forEach((_, key) => {
+    rooms.forEach((_, key, map) => {
         if(sids.get(key) === undefined) {
             publicRooms.push(key);
         }
