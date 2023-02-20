@@ -2,6 +2,7 @@ import http from "http";
 import express from "express";
 import path from "path";
 import {Server} from "socket.io";
+import {instrument} from "@socket.io/admin-ui";
 // import webSocket, {WebSocketServer} from "ws";
 
 const __dirname = path.resolve();
@@ -16,7 +17,16 @@ const handleListen = () => console.log("Listening on http://localhost:3000");
 // app.listen(3000, handleListen);
 
 const httpServer = http.createServer(app);
-const wsServer = new Server(httpServer);
+const wsServer = new Server(httpServer, {
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    }
+});
+
+instrument(wsServer, {
+   auth: false
+});
 
 function publicRooms() {
     const {sockets: {adapter: {sids, rooms}}} = wsServer;
@@ -31,6 +41,11 @@ function publicRooms() {
     // const sids = wsServer.sockets.adapter.sids;
     // const rooms = wsServer.sockets.adapter.rooms;
 }
+
+function countRoom(roomName) {
+    returnwsServer.sockets.adapter.rooms.get(roomName)?.size;
+}
+
 wsServer.on("connection", (socket) => {
     console.log(socket);
     socket["nickname"] = "Anon";
@@ -44,14 +59,18 @@ wsServer.on("connection", (socket) => {
         socket.join(roomName);
         console.log(socket.rooms);
         done();
-        socket.to(roomName).emit("welcome", socket.nickname);
+        socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
+        wsServer.sockets.emit("room_change", publicRooms());
         // setTimeout(() => {
         //     console.log("hello from the backend");
         //     done();
         // }, 15000)
     })
     socket.on("disconnecting", () => {
-        socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname);
+        socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname, countRoom(room) -1);
+    })
+    socket.on("disconnect", () => {
+        wsServer.sockets.emit("room_change", publicRooms());
     })
     socket.on("new_message", (msg, room, done) => {
         socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
