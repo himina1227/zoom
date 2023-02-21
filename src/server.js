@@ -47,39 +47,50 @@ function countRoom(roomName) {
 }
 
 wsServer.on("connection", (socket) => {
-    console.log(socket);
-    socket["nickname"] = "Anon";
-    socket.onAny((event) => {
-        console.log(`Socket Event:${event}`);
-    })
-    // socket.on("enter_room", (msg) => console.log(msg));
-    socket.on("enter_room", (roomName, done) => {
-        // console.log(socket.id);
-        console.log(socket.rooms);
+    socket.on("join_room", (roomName, done) => {
         socket.join(roomName);
-        console.log(socket.rooms);
         done();
-        socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
-        wsServer.sockets.emit("room_change", publicRooms());
-        // setTimeout(() => {
-        //     console.log("hello from the backend");
-        //     done();
-        // }, 15000)
+        socket.to("roomName").emit("welcome")
+    });
+    socket.on("offer", (offer, roomName) => {
+        socket.to(roomName).emit("offer", offer);
     })
-    socket.on("disconnecting", () => {
-        socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname, countRoom(room) -1);
-    })
-    socket.on("disconnect", () => {
-        wsServer.sockets.emit("room_change", publicRooms());
-    })
-    socket.on("new_message", (msg, room, done) => {
-        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
-        done();
-    })
-    socket.on("nickname", (nickname) => (socket["nickname"] = nickname))
 })
 
 httpServer.listen(3000, handleListen);
+
+// wsServer.on("connection", (socket) => {
+//     console.log(socket);
+//     socket["nickname"] = "Anon";
+//     socket.onAny((event) => {
+//         console.log(`Socket Event:${event}`);
+//     })
+//     // socket.on("enter_room", (msg) => console.log(msg));
+//     socket.on("enter_room", (roomName, done) => {
+//         // console.log(socket.id);
+//         console.log(socket.rooms);
+//         socket.join(roomName);
+//         console.log(socket.rooms);
+//         done();
+//         socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
+//         wsServer.sockets.emit("room_change", publicRooms());
+//         // setTimeout(() => {
+//         //     console.log("hello from the backend");
+//         //     done();
+//         // }, 15000)
+//     })
+//     socket.on("disconnecting", () => {
+//         socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname, countRoom(room) -1);
+//     })
+//     socket.on("disconnect", () => {
+//         wsServer.sockets.emit("room_change", publicRooms());
+//     })
+//     socket.on("new_message", (msg, room, done) => {
+//         socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+//         done();
+//     })
+//     socket.on("nickname", (nickname) => (socket["nickname"] = nickname))
+// })
 // const wss = new WebSocketServer({server});
 //
 // const sockets = [];
